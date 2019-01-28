@@ -82,6 +82,14 @@ def get_show_by_id(id):
         return create_response(status=404, message="No show with this id exists.")
     return create_response({"shows": db.getById('shows', int(id))})
 
+# Part 3 --> query string (minEpisodes)
+def get_min_episodes():
+    minEpisodes = request.args.get('minEpisodes')
+    to_return = []
+    for show in db.get('shows'):
+        if show["episodes_seen"] >= int(minEpisodes):
+            to_return.append(show)
+    return create_response({"shows": to_return})
 
 # Part 4 --> define the endpoint POST /shows
 # created using 'name' and 'episodes_seen'
