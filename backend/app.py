@@ -51,9 +51,19 @@ def mirror(name):
     data = {"name": name}
     return create_response(data)
 
+
 @app.route("/shows", methods=['GET'])
 def get_all_shows():
-    return create_response({"shows": db.get('shows')})
+    # Part 3: query string for minEpisodes
+    if (request.args.get('minEpisodes') != None):
+        minEpisodes = request.args.get('minEpisodes')
+        to_return = []
+        for show in db.get('shows'):
+            if show["episodes_seen"] >= int(minEpisodes):
+                to_return.append(show)
+        return create_response({"shows": to_return})
+    else:
+        return create_response({"shows": db.get('shows')})
 
 @app.route("/shows/<id>", methods=['DELETE'])
 def delete_show(id):
@@ -65,11 +75,36 @@ def delete_show(id):
 
 # TODO: Implement the rest of the API here!
 
+# Part 2 --> define the endpoint GET /shows/<id>
 @app.route("/shows/<id>", methods=['GET'])
 def get_show_by_id(id):
     if db.getById('shows', int(id)) is None:
         return create_response(status=404, message="No show with this id exists.")
-    return create_response({"show": db.getById('shows', int(id))})
+    return create_response({"shows": db.getById('shows', int(id))})
+
+
+# Part 4 --> define the endpoint POST /shows
+# created using 'name' and 'episodes_seen'
+# returns added show
+@app.route("/shows", methods=['POST'])
+def add_show():
+    new_show_data = request.get_json()
+    if 'name' not in new_show_data or 'episodes_seen' not in new_show_data:
+        return create_response(status=422, message="Please include the name and episodes seen for the show you are trying to add.")
+    new_show = db.create('shows', new_show_data)
+    return create_response({"added_show": new_show})
+
+# Part 5 --> define the endpoint PUT /shows/<id>
+# updated using params (name, episodes_seen)
+# returns updated show
+@app.route("/shows/<id>", methods=['PUT'])
+def update_show(id):
+    new_data = request.get_json()
+    if 'name' not in new_data and 'episodes_seen' not in new_data:
+        return create_response(status=422, message="Please include the name or episodes seen for the show you are trying to update.")
+    updated_show = db.updateById('shows', int(id), new_data)
+    return create_response({"updated_show": updated_show})
+
 
 """
 ~~~~~~~~~~~~ END API ~~~~~~~~~~~~
